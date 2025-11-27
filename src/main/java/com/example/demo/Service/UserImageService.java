@@ -1,10 +1,7 @@
 package com.example.demo.Service;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,35 +17,30 @@ public class UserImageService {
 	@Autowired
 	private UserImagesRepo userImagesRepo;
 
-	private final String uploadDir = "C:/uploaded-images/";
-
 //  =============================================================================================
 
-	public String uploadImage(MultipartFile file) throws Exception {
-		File directory = new File(uploadDir);
-		if (!directory.exists()) {
-			directory.mkdirs();
-		}
+	public String uploadImage(List<Integer> userIds, MultipartFile file) throws Exception {
 
-		String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-		Path filePath = Paths.get(uploadDir + filename);
+	    String base64 = Base64.getEncoder().encodeToString(file.getBytes());
+	    String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
-		Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+	    UserImagesModel img = new UserImagesModel();
+	    img.setUserIds(userIds);
+	    img.setBase64Image(base64);
+	    img.setImageName(fileName);
+	    img.setCreatedAt(LocalDateTime.now());
 
-		return filename;
+	    userImagesRepo.save(img);
+
+	    return "Image saved for users: " + userIds;
 	}
+
 
 //    =============================================================================================
 
 	public List<UserImagesModel> getUserImages(int userId) {
-		List<UserImagesModel> list = userImagesRepo.findByUserId(userId);
-
-		for (UserImagesModel img : list) {
-			String fullUrl = "http://localhost:8080/images/" + img.getImageUrl();
-			img.setImagePath(fullUrl);
-		}
-
-		return list;
+	    return userImagesRepo.findByUserIdsContaining(userId);
 	}
+
 
 }

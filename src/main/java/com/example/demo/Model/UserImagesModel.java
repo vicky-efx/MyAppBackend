@@ -1,15 +1,17 @@
 package com.example.demo.Model;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
+import jakarta.persistence.Column;
 
 @Entity
 @Table(name = "user_images")
@@ -19,14 +21,15 @@ public class UserImagesModel {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 
-	@ManyToOne
-	@JoinColumn(name = "userId")
-	private UserModel user;
+	@ElementCollection
+	@CollectionTable(name = "user_image_users", joinColumns = @JoinColumn(name = "image_id"))
+	@Column(name = "user_id")
+	private List<Integer> userIds;
 
-	private String imageUrl;
+	private String imageName;
 
-	@Transient
-	private String imagePath;
+	@Column(columnDefinition = "LONGTEXT")
+	private String base64Image;
 
 	private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -38,28 +41,28 @@ public class UserImagesModel {
 		this.id = id;
 	}
 
-	public UserModel getUser() {
-		return user;
+	public List<Integer> getUserIds() {
+		return userIds;
 	}
 
-	public void setUser(UserModel user) {
-		this.user = user;
+	public void setUserIds(List<Integer> userIds) {
+		this.userIds = userIds;
 	}
 
-	public String getImageUrl() {
-		return imageUrl;
+	public String getBase64Image() {
+		return base64Image;
 	}
 
-	public void setImageUrl(String imageUrl) {
-		this.imageUrl = imageUrl;
+	public void setBase64Image(String base64Image) {
+		this.base64Image = base64Image;
 	}
 
-	public String getImagePath() {
-		return imagePath;
+	public String getImageName() {
+		return imageName;
 	}
 
-	public void setImagePath(String imagePath) {
-		this.imagePath = imagePath;
+	public void setImageName(String imageName) {
+		this.imageName = imageName;
 	}
 
 	public LocalDateTime getCreatedAt() {

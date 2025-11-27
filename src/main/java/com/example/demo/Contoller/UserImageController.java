@@ -7,6 +7,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,44 +23,24 @@ import com.example.demo.Service.UserService;
 @CrossOrigin("*")
 public class UserImageController {
 
-    @Autowired
-    private UserImageService imageService;
+	@Autowired
+	private UserImageService imageService;
 
-    @Autowired
-    private UserService userService;
+//  =============================================================================================
 
-    @Autowired
-    private UserImagesRepo userImagesRepo;
+	@PostMapping("/admin/send-image-multiple")
+	public String sendImageToMultipleUsers(@RequestParam List<Integer> userIds, @RequestParam MultipartFile file)
+			throws Exception {
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+		return imageService.uploadImage(userIds, file);
+	}
 
-    
-    @PostMapping("/admin/send-image-multiple")
-    public String sendImageToMultipleUsers(
-            @RequestParam("userIds") List<Integer> userIds,
-            @RequestParam("file") MultipartFile file) throws Exception {
+//  =============================================================================================
 
-        String fileName = imageService.uploadImage(file);
+	@GetMapping("/user/images")
+	public List<UserImagesModel> getUserImages(@RequestParam("userId") int userId) {
+	    return imageService.getUserImages(userId);
+	}
 
-        for (Integer userId : userIds) {
-            var user = userService.getUserById(userId);
-
-            UserImagesModel img = new UserImagesModel();
-            img.setUser(user);
-            img.setImageUrl(fileName);
-            userImagesRepo.save(img);
-
-            messagingTemplate.convertAndSend("/topic/user/" + userId, "NEW_IMAGE");
-        }
-
-        return "Image sent successfully to " + userIds.size() + " users!";
-    }
-
-    @GetMapping("/user/images")
-    public List<UserImagesModel> getUserImages(@RequestParam("userId") int userId) {
-        return imageService.getUserImages(userId);
-    }
 
 }
-
